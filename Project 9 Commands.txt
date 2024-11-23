@@ -1,0 +1,27 @@
+aws ec2 create-vpc --cidr-block 10.0.0.0/16 --query Vpc.VpcId --output text 
+aws ec2 create-tags --resources vpc-0121359c501a95dbf --tags Key=Name,Value='Lab VPC'
+aws ec2 modify-vpc-attribute --vpc-id vpc-0121359c501a95dbf --enable-dns-hostnames
+aws ec2 create-subnet --vpc-id vpc-0121359c501a95dbf --cidr-block 10.0.0.0/24 --availability-zone us-east-1a --query Subnet.SubnetId --output text
+aws ec2 create-tags --resources subnet-0082865de9d758b97 --tags Key=Name,Value='Public Subnet'
+aws ec2 modify-subnet-attribute --subnet-id subnet-0082865de9d758b97 --map-public-ip-on-launch  
+aws ec2 create-subnet --vpc-id vpc-0121359c501a95dbf --cidr-block 10.0.2.0/23 --availability-zone us-east-1a --query Subnet.SubnetId --output text
+aws ec2 create-tags --resources subnet-0d1f0972d947648c8 --tags Key=Name,Value='Private Subnet'
+aws ec2 create-internet-gateway --query InternetGateway.InternetGatewayId --output text
+aws ec2 create-tags --resources igw-03b9c6284f4337074 --tags Key=Name,Value='Lab IGW'
+aws ec2 attach-internet-gateway --vpc-id vpc-0121359c501a95dbf --internet-gateway-id igw-03b9c6284f4337074
+aws ec2 create-tags --resources rtb-09a19108f5f569a58 --tags Key=Name,Value='Private Route Table'
+aws ec2 create-route-table --vpc-id vpc-0121359c501a95dbf --query RouteTable.RouteTableId --output text
+aws ec2 create-tags --resources rtb-0e096b4161659f8a9 --tags Key=Name,Value='Public Route Table'
+aws ec2 create-route --route-table-id rtb-0e096b4161659f8a9 --destination-cidr-block 0.0.0.0/0 --gateway-id igw-03b9c6284f4337074
+aws ec2 associate-route-table --route-table-id rtb-0e096b4161659f8a9 --subnet-id subnet-0082865de9d758b97
+aws ec2 create-security-group --group-name App-SG --description "Allow HTTP Traffic" --vpc-id vpc-0121359c501a95dbf
+aws ec2 create-tags --resources sg-060449b09d68253f1 --tags Key=Name,Value='App-SG'
+aws ec2 authorize-security-group-ingress --group-id sg-060449b09d68253f1 --ip-permissions 'IpProtocol=tcp,FromPort=80,ToPort=80,IpRanges=[{CidrIp=0.0.0.0/0,Description="Allow Web Access"}]'
+aws ec2 run-instances --image-id ami-0fff1b9a61dec8a5f --count 1 --instance-type t2.micro --key-name vockey --subnet-id subnet-0082865de9d758b97 --security-group-ids sg-060449b09d68253f1 --iam-instance-profile Name=Inventory-App-Role --user-data file:C:\Users\esraae\my_script.txt
+aws ec2 create-tags --resources i-0f657f3b115346b00 --tags Key=Name,Value='App Server'
+
+
+
+
+
+
